@@ -389,13 +389,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Name details Column
       const nameContainer = document.createElement("div");
-      nameContainer.className = "participant-name-container";
+      nameContainer.className = "participant-name-container d-flex align-items-center gap-1";
       
       const nameEl = document.createElement("div");
       nameEl.className = "participant-name";
       nameEl.textContent = p.name;
+
+      // Edit name button (visible on card hover)
+      const editNameBtn = document.createElement("button");
+      editNameBtn.className = "btn-edit-name";
+      editNameBtn.title = "Editar nombre";
+      editNameBtn.innerHTML = "<i class='bi bi-pencil'></i>";
+      editNameBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        enterNameDirectEdit(p.id, nameContainer, nameEl, editNameBtn, avatarDiv);
+      });
       
       nameContainer.appendChild(nameEl);
+      nameContainer.appendChild(editNameBtn);
       card.appendChild(nameContainer);
 
       // Direct point adjustment & Score Columns
@@ -855,6 +866,93 @@ document.addEventListener("DOMContentLoaded", () => {
     renderParticipants();
     inputSearchFilter.focus();
   });
+
+  // --- SIDEBAR COLLAPSE (Notion-style) ---
+  const SIDEBAR_KEY = "rankflow_sidebar_collapsed";
+  const desktopSidebar = document.getElementById("desktop-sidebar");
+  const sidebarRail    = document.getElementById("sidebar-rail");
+  const btnToggle      = document.getElementById("btn-toggle-sidebar");
+  const toggleIcon     = document.getElementById("sidebar-toggle-icon");
+
+  function setSidebarCollapsed(collapsed) {
+    if (collapsed) {
+      desktopSidebar.classList.add("sidebar-collapsed");
+      sidebarRail.classList.add("rail-visible");
+      toggleIcon.className = "bi bi-layout-sidebar-reverse";
+      btnToggle.title = "Expandir panel";
+    } else {
+      desktopSidebar.classList.remove("sidebar-collapsed");
+      sidebarRail.classList.remove("rail-visible");
+      toggleIcon.className = "bi bi-layout-sidebar";
+      btnToggle.title = "Colapsar panel";
+    }
+    localStorage.setItem(SIDEBAR_KEY, collapsed ? "1" : "0");
+  }
+
+  // Restore sidebar state from localStorage
+  const storedCollapsed = localStorage.getItem(SIDEBAR_KEY) === "1";
+  setSidebarCollapsed(storedCollapsed);
+
+  btnToggle.addEventListener("click", () => {
+    const isNowCollapsed = !desktopSidebar.classList.contains("sidebar-collapsed");
+    setSidebarCollapsed(isNowCollapsed);
+  });
+
+  // Rail shortcut buttons
+  document.getElementById("btn-rail-expand").addEventListener("click", () => setSidebarCollapsed(false));
+  document.getElementById("btn-rail-new-board").addEventListener("click", triggerNewBoardModal);
+  document.getElementById("btn-rail-export").addEventListener("click", exportDatabase);
+  document.getElementById("btn-rail-import").addEventListener("click", triggerImportFile);
+  document.getElementById("btn-rail-delete").addEventListener("click", triggerDeleteConfirmModal);
+
+  // --- INLINE PARTICIPANT NAME EDITING ---
+  function enterNameDirectEdit(participantId, container, nameSpan, editBtn, avatarEl) {
+    const activeBoard = state.leaderboards[state.activeBoardId];
+    if (!activeBoard) return;
+
+    const participant = activeBoard.participants.find(p => p.id === participantId);
+    if (!participant) return;
+
+    // Hide the original name and edit button, show input
+    nameSpan.style.display = "none";
+    editBtn.style.display = "none";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "participant-name-edit-input";
+    input.value = participant.name;
+    input.maxLength = 50;
+    container.insertBefore(input, nameSpan);
+    input.focus();
+    input.select();
+
+    const saveNameEdit = () => {
+      const newName = input.value.trim();
+      if (newName && newName !== participant.name) {
+        participant.name = newName;
+        saveState();
+        showToast(`Nombre actualizado a "${newName}"`);
+        // Re-render to reflect new initials/avatar
+        renderParticipants();
+      } else {
+        // Rollback
+        input.remove();
+        nameSpan.style.display = "";
+        editBtn.style.display = "";
+      }
+    };
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); saveNameEdit(); }
+      if (e.key === "Escape") {
+        input.remove();
+        nameSpan.style.display = "";
+        editBtn.style.display = "";
+      }
+    });
+
+    input.addEventListener("blur", saveNameEdit);
+  }
 
   // --- INITIALIZATION ---
   loadState();

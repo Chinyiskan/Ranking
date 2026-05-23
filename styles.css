@@ -746,3 +746,182 @@ h1, h2, h3, h4, h5, h6, .font-outfit {
     min-width: 70px;
   }
 }
+
+/* ==========================================================================
+   Sidebar Collapse System (Notion-style)
+   ========================================================================== */
+
+/* Toggle button in header */
+.btn-sidebar-toggle {
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+
+.btn-sidebar-toggle:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: var(--neon-violet);
+  color: var(--text-main);
+}
+
+/* Desktop sidebar animated collapse */
+#desktop-sidebar {
+  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.22s ease,
+              padding 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+#desktop-sidebar.sidebar-collapsed {
+  width: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+  border-right: none !important;
+}
+
+/* Collapsed icon rail */
+.sidebar-rail {
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 0;
+  padding: 16px 0;
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(139, 92, 246, 0.1);
+  overflow: hidden;
+  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              padding 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.sidebar-rail.rail-visible {
+  width: 56px;
+  padding: 16px 8px;
+}
+
+.rail-icon-btn {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.rail-icon-btn:hover {
+  background: rgba(139, 92, 246, 0.18);
+  border-color: var(--neon-violet);
+  color: var(--text-main);
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+}
+
+.rail-icon-btn.rail-icon-danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+/* Tooltip on hover for rail icons */
+.rail-icon-btn::after {
+  content: attr(title);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(14, 18, 43, 0.95);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  color: var(--text-main);
+  font-family: var(--font-inter);
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 100;
+}
+
+.rail-icon-btn:hover::after {
+  opacity: 1;
+}
+
+.rail-divider {
+  width: 28px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 4px 0;
+}
+
+/* ==========================================================================
+   Participant Inline Name Editing
+   ========================================================================== */
+
+.participant-name-edit-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--neon-violet);
+  border-radius: 8px;
+  color: var(--text-main);
+  font-family: var(--font-outfit);
+  font-weight: 600;
+  font-size: 1.05rem;
+  padding: 3px 10px;
+  width: 100%;
+  max-width: 220px;
+  transition: box-shadow 0.2s ease;
+}
+
+.participant-name-edit-input:focus {
+  outline: none;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.3);
+}
+
+.btn-edit-name {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  opacity: 0;
+  flex-shrink: 0;
+}
+
+.participant-card:hover .btn-edit-name {
+  opacity: 1;
+}
+
+.btn-edit-name:hover {
+  background: rgba(139, 92, 246, 0.15);
+  color: var(--neon-violet);
+}
+
