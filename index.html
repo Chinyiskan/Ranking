@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#070913">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>RankFlow - Creador de Rankings y Leaderboards Premium</title>
+  <!-- SEO & Description -->
+  <meta name="description" content="RankFlow te permite crear, gestionar y personalizar tablas de clasificación y rankings modernos en tiempo real. Configura puntuaciones, guarda localmente y exporta tus datos de forma profesional.">
+  <!-- Google Fonts: Outfit (headings) & Inter (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Custom Premium Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Main Container -->
+  <div class="container-fluid min-vh-100 d-flex flex-column p-0">
+    
+    <!-- Top Glassmorphism Navbar (Mobile Friendly) -->
+    <header class="navbar navbar-expand-lg py-3 px-4 glass-panel border-bottom-neon sticky-top">
+      <div class="container-fluid p-0 d-flex justify-content-between align-items-center">
+        <!-- Logo SVG + Title -->
+        <a class="navbar-brand d-flex align-items-center gap-2 m-0" href="#">
+          <svg class="app-logo-svg" width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="36" height="36" rx="8" fill="url(#logo-grad)" />
+            <path d="M10 26V20M18 26V14M26 26V8" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="logo-grad" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#8b5cf6" />
+                <stop offset="1" stop-color="#06b6d4" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="logo-text">Rank<span class="gradient-text">Flow</span></span>
+        </a>
+
+        <!-- System Status Bar -->
+        <div class="d-flex align-items-center gap-3">
+          <div class="status-indicator d-none d-sm-flex align-items-center gap-2 px-3 py-1.5 rounded-full glass-pill">
+            <span class="pulse-dot"></span>
+            <span id="save-status" class="text-secondary small">Guardado local</span>
+          </div>
+          
+          <!-- Mobile Menu Trigger -->
+          <button class="btn btn-outline-light border-0 d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas" aria-label="Toggle Navigation">
+            <i class="bi bi-list fs-3"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- App Body (Sidebar + Content) -->
+    <div class="flex-grow-1 d-flex flex-column flex-lg-row">
+
+      <!-- Desktop Sidebar (Hidden on Mobile, Offcanvas replaces it) -->
+      <aside class="sidebar-container glass-panel d-none d-lg-block border-end-neon py-4 px-3 flex-shrink-0" style="width: 320px;">
+        <!-- Sidebar Content Shared Container -->
+        <div class="d-flex flex-column gap-4 h-100 overflow-y-auto custom-scrollbar-sidebar pr-1">
+          <!-- Sidebar Shared Partials -->
+          <div class="sidebar-section">
+            <h6 class="sidebar-label">Tus Tablas de Posiciones</h6>
+            <div id="leaderboard-selector-container" class="d-flex flex-column gap-2 mt-2">
+              <!-- Dynamically populated boards list -->
+            </div>
+            
+            <button class="btn btn-action-glow btn-sm w-100 mt-3 d-flex align-items-center justify-content-center gap-2" id="btn-create-board-trigger">
+              <i class="bi bi-plus-lg"></i> Nuevo Leaderboard
+            </button>
+          </div>
+
+          <hr class="border-neon-muted my-1">
+
+          <div class="sidebar-section">
+            <h6 class="sidebar-label">Ajustes de Tabla Activa</h6>
+            
+            <div class="mt-3">
+              <label for="input-board-name" class="form-label-custom">Nombre de la Tabla</label>
+              <div class="input-group-custom">
+                <i class="bi bi-pencil input-icon"></i>
+                <input type="text" id="input-board-name" class="form-control-custom" placeholder="Ej. Torneo Gaming" maxlength="40">
+              </div>
+            </div>
+
+            <div class="row g-2 mt-2">
+              <div class="col-6">
+                <label for="input-plus-step" class="form-label-custom">Sumar (+)</label>
+                <div class="input-group-custom">
+                  <i class="bi bi-plus-circle input-icon text-success"></i>
+                  <input type="number" id="input-plus-step" class="form-control-custom text-center" min="1" max="100000" value="1">
+                </div>
+              </div>
+              <div class="col-6">
+                <label for="input-minus-step" class="form-label-custom">Restar (-)</label>
+                <div class="input-group-custom">
+                  <i class="bi bi-dash-circle input-icon text-danger"></i>
+                  <input type="number" id="input-minus-step" class="form-control-custom text-center" min="1" max="100000" value="1">
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <label class="form-label-custom d-block">Dirección de Ordenamiento</label>
+              <div class="d-flex gap-2 mt-1">
+                <input type="radio" class="btn-check" name="sort-order" id="sort-desc" value="desc" checked autocomplete="off">
+                <label class="btn btn-outline-custom flex-grow-1 text-center py-2" for="sort-desc">
+                  <i class="bi bi-sort-numeric-down me-1"></i> Descendente
+                </label>
+
+                <input type="radio" class="btn-check" name="sort-order" id="sort-asc" value="asc" autocomplete="off">
+                <label class="btn btn-outline-custom flex-grow-1 text-center py-2" for="sort-asc">
+                  <i class="bi bi-sort-numeric-up me-1"></i> Ascendente
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <hr class="border-neon-muted my-1">
+
+          <div class="sidebar-section mt-auto">
+            <h6 class="sidebar-label">Acciones y Copias de Seguridad</h6>
+            <div class="d-grid gap-2 mt-2">
+              <div class="row g-2">
+                <div class="col-6">
+                  <button class="btn btn-outline-custom w-100 py-2 d-flex flex-column align-items-center justify-content-center gap-1" id="btn-export-board" title="Exportar a Archivo JSON">
+                    <i class="bi bi-download fs-5 text-cyan"></i>
+                    <span class="x-small">Exportar</span>
+                  </button>
+                </div>
+                <div class="col-6">
+                  <button class="btn btn-outline-custom w-100 py-2 d-flex flex-column align-items-center justify-content-center gap-1" id="btn-import-board" title="Importar desde Archivo JSON">
+                    <i class="bi bi-upload fs-5 text-violet"></i>
+                    <span class="x-small">Importar</span>
+                  </button>
+                  <input type="file" id="file-import-input" accept=".json" class="d-none">
+                </div>
+              </div>
+              <button class="btn btn-danger-glow w-100 py-2 mt-2 d-flex align-items-center justify-content-center gap-2" id="btn-delete-board">
+                <i class="bi bi-trash3"></i> Eliminar Tabla Activa
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Offcanvas Mobile Sidebar (Loads identical controls on mobile viewports) -->
+      <div class="offcanvas offcanvas-start glass-panel border-end-neon py-3" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="sidebarOffcanvasLabel">
+        <div class="offcanvas-header border-bottom border-neon-muted px-4 py-3">
+          <h5 class="offcanvas-title d-flex align-items-center gap-2" id="sidebarOffcanvasLabel">
+            <span class="logo-text-sm">Panel de <span class="gradient-text">Control</span></span>
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column gap-4 overflow-y-auto px-4">
+          <!-- Dynamically cloned into offcanvas, or targetted in JS for mirroring -->
+          <div class="sidebar-section">
+            <h6 class="sidebar-label">Tus Tablas de Posiciones</h6>
+            <div id="mobile-leaderboard-selector-container" class="d-flex flex-column gap-2 mt-2">
+              <!-- Dynamically populated in JS -->
+            </div>
+            
+            <button class="btn btn-action-glow btn-sm w-100 mt-3 d-flex align-items-center justify-content-center gap-2" id="btn-mobile-create-board-trigger">
+              <i class="bi bi-plus-lg"></i> Nuevo Leaderboard
+            </button>
+          </div>
+
+          <hr class="border-neon-muted">
+
+          <div class="sidebar-section">
+            <h6 class="sidebar-label">Ajustes de Tabla Activa</h6>
+            
+            <div class="mt-3">
+              <label for="mobile-input-board-name" class="form-label-custom">Nombre de la Tabla</label>
+              <div class="input-group-custom">
+                <i class="bi bi-pencil input-icon"></i>
+                <input type="text" id="mobile-input-board-name" class="form-control-custom" placeholder="Ej. Torneo Gaming" maxlength="40">
+              </div>
+            </div>
+
+            <div class="row g-2 mt-2">
+              <div class="col-6">
+                <label for="mobile-input-plus-step" class="form-label-custom">Sumar (+)</label>
+                <div class="input-group-custom">
+                  <i class="bi bi-plus-circle input-icon text-success"></i>
+                  <input type="number" id="mobile-input-plus-step" class="form-control-custom text-center" min="1" max="100000" value="1">
+                </div>
+              </div>
+              <div class="col-6">
+                <label for="mobile-input-minus-step" class="form-label-custom">Restar (-)</label>
+                <div class="input-group-custom">
+                  <i class="bi bi-dash-circle input-icon text-danger"></i>
+                  <input type="number" id="mobile-input-minus-step" class="form-control-custom text-center" min="1" max="100000" value="1">
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <label class="form-label-custom d-block">Dirección de Ordenamiento</label>
+              <div class="d-flex gap-2 mt-1">
+                <input type="radio" class="btn-check" name="mobile-sort-order" id="mobile-sort-desc" value="desc" checked autocomplete="off">
+                <label class="btn btn-outline-custom flex-grow-1 text-center py-2" for="mobile-sort-desc">
+                  <i class="bi bi-sort-numeric-down me-1"></i> Descendente
+                </label>
+
+                <input type="radio" class="btn-check" name="mobile-sort-order" id="mobile-sort-asc" value="asc" autocomplete="off">
+                <label class="btn btn-outline-custom flex-grow-1 text-center py-2" for="mobile-sort-asc">
+                  <i class="bi bi-sort-numeric-up me-1"></i> Ascendente
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <hr class="border-neon-muted mt-auto">
+
+          <div class="sidebar-section">
+            <h6 class="sidebar-label">Acciones</h6>
+            <div class="d-grid gap-2 mt-2">
+              <button class="btn btn-outline-custom w-100 py-2 d-flex align-items-center justify-content-center gap-2" id="btn-mobile-export-board">
+                <i class="bi bi-download text-cyan"></i> Exportar JSON
+              </button>
+              <button class="btn btn-outline-custom w-100 py-2 d-flex align-items-center justify-content-center gap-2" id="btn-mobile-import-board">
+                <i class="bi bi-upload text-violet"></i> Importar JSON
+              </button>
+              <button class="btn btn-danger-glow w-100 py-2 mt-2 d-flex align-items-center justify-content-center gap-2" id="btn-mobile-delete-board">
+                <i class="bi bi-trash3"></i> Eliminar Tabla Activa
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Dashboard Viewport -->
+      <main class="dashboard-viewport flex-grow-1 d-flex flex-column p-3 p-sm-4 p-md-5">
+        
+        <!-- Welcome SVG Illustration when empty (Dynamically Hidden in JS) -->
+        <div id="no-boards-fallback" class="d-none text-center m-auto py-5">
+          <svg width="220" height="220" viewBox="0 0 200 200" fill="none" class="floating-svg mb-4" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="80" fill="url(#svg-fallback-bg)" fill-opacity="0.1" stroke="url(#svg-fallback-grad)" stroke-width="2" stroke-dasharray="8 6"/>
+            <!-- Podium lines -->
+            <path d="M60 140H140M75 140V95H125V140M100 95V70" stroke="#8b5cf6" stroke-width="3" stroke-linecap="round"/>
+            <path d="M50 140V115H75M125 140V125H150" stroke="#06b6d4" stroke-width="3" stroke-linecap="round"/>
+            <!-- Dynamic Crown -->
+            <path d="M85 50L100 35L115 50L130 40L120 70H80L70 40L85 50Z" fill="url(#svg-fallback-crown)" stroke="#ffffff" stroke-width="1.5"/>
+            <circle cx="100" cy="35" r="3" fill="#ffffff" />
+            <circle cx="70" cy="40" r="3" fill="#ffffff" />
+            <circle cx="130" cy="40" r="3" fill="#ffffff" />
+            <!-- Definitions -->
+            <defs>
+              <linearGradient id="svg-fallback-bg" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#8b5cf6" />
+                <stop offset="1" stop-color="#06b6d4" />
+              </linearGradient>
+              <linearGradient id="svg-fallback-grad" x1="20" y1="20" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#8b5cf6" />
+                <stop offset="1" stop-color="#06b6d4" />
+              </linearGradient>
+              <linearGradient id="svg-fallback-crown" x1="70" y1="35" x2="130" y2="70" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#eab308" />
+                <stop offset="1" stop-color="#f59e0b" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <h2 class="h3 font-outfit font-weight-700">¡Te damos la bienvenida a RankFlow!</h2>
+          <p class="text-secondary text-max-width mx-auto mt-2" style="font-size: 1.05rem;">Aquí puedes crear y gestionar tus propias tablas de clasificación y rankings de forma profesional, rápida y simple.</p>
+          <button class="btn btn-action-glow px-4 py-2.5 mt-3" id="btn-create-board-fallback">
+            <i class="bi bi-plus-lg me-2"></i> Crear Tabla de Posiciones
+          </button>
+        </div>
+
+        <!-- Active Leaderboard Interface -->
+        <div id="active-board-interface" class="d-flex flex-column gap-4 flex-grow-1">
+          
+          <!-- Board Stats Banner -->
+          <div class="row g-3">
+            <div class="col-12 col-md-8">
+              <h1 id="lbl-board-title" class="board-heading font-outfit">Cargando Ranking...</h1>
+              <p class="text-muted mb-0 small">Configura las puntuaciones en el menú lateral. Las posiciones se actualizan y ordenan en tiempo real.</p>
+            </div>
+            <!-- Quick Stat Counters -->
+            <div class="col-12 col-md-4 d-flex justify-content-md-end align-items-center gap-3">
+              <div class="stat-badge px-3 py-2 glass-panel rounded-card text-center min-width-100">
+                <span class="d-block text-muted x-small uppercase">Miembros</span>
+                <span id="stat-count" class="h4 mb-0 font-outfit font-weight-700 gradient-text">0</span>
+              </div>
+              <div class="stat-badge px-3 py-2 glass-panel rounded-card text-center min-width-120">
+                <span class="d-block text-muted x-small uppercase">Puntos Totales</span>
+                <span id="stat-points" class="h4 mb-0 font-outfit font-weight-700 gradient-text">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Participant & Filter Actions Bar -->
+          <div class="glass-panel p-3 p-md-4 rounded-card border-neon shadow-lg">
+            <div class="row g-3 align-items-end">
+              <!-- Add Participant Subform -->
+              <div class="col-12 col-lg-8">
+                <h6 class="sidebar-label text-start mb-2"><i class="bi bi-person-plus text-cyan me-1"></i> Añadir Nuevo Participante</h6>
+                <form id="form-add-participant" class="row g-2">
+                  <div class="col-12 col-sm-7">
+                    <div class="input-group-custom">
+                      <i class="bi bi-person input-icon"></i>
+                      <input type="text" id="input-new-name" class="form-control-custom" placeholder="Nombre completo o Alias" required maxlength="50">
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-3">
+                    <div class="input-group-custom">
+                      <i class="bi bi-gem input-icon"></i>
+                      <input type="number" id="input-new-score" class="form-control-custom text-center" placeholder="Puntos inic." value="0" min="-10000000" max="10000000">
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-2">
+                    <button type="submit" class="btn btn-action-glow w-100 h-100 d-flex align-items-center justify-content-center gap-1" style="min-height: 48px;">
+                      <i class="bi bi-plus-lg"></i> <span class="d-sm-none d-lg-inline">Añadir</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Quick Search Filter -->
+              <div class="col-12 col-lg-4">
+                <h6 class="sidebar-label text-start mb-2"><i class="bi bi-funnel text-violet me-1"></i> Filtrar Tabla</h6>
+                <div class="input-group-custom">
+                  <i class="bi bi-search input-icon"></i>
+                  <input type="text" id="input-search-filter" class="form-control-custom" placeholder="Buscar participante...">
+                  <button class="btn btn-outline-clear d-none" id="btn-clear-search" type="button">
+                    <i class="bi bi-x-circle text-muted"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Leaderboard Visual Columns Header -->
+          <div class="leaderboard-header-row px-4 py-2 d-none d-md-flex align-items-center gap-3">
+            <div class="header-col rank text-center font-weight-600">Rango</div>
+            <div class="header-col flex-grow-1 font-weight-600">Participante</div>
+            <div class="header-col score text-center font-weight-600">Puntaje</div>
+            <div class="header-col actions text-end font-weight-600" style="width: 190px;">Operaciones rápidas</div>
+          </div>
+
+          <!-- Dynamic Ranking List Container -->
+          <div id="rankings-list" class="d-flex flex-column gap-2 overflow-y-auto pr-1 flex-grow-1 custom-scrollbar">
+            <!-- Dynamic rendering cards go here -->
+          </div>
+
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Create New Board Backdrop Modal -->
+  <div class="modal fade" id="createBoardModal" tabindex="-1" aria-labelledby="createBoardModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content glass-panel border-neon shadow-2xl">
+        <div class="modal-header border-bottom border-neon-muted p-4">
+          <h5 class="modal-title font-outfit font-weight-700" id="createBoardModalLabel">
+            <i class="bi bi-grid-3x3-gap text-cyan me-1"></i> Crear Nueva Tabla
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <form id="form-create-board">
+          <div class="modal-body p-4">
+            <div class="mb-3">
+              <label for="new-board-name" class="form-label-custom">Nombre de la Tabla</label>
+              <div class="input-group-custom">
+                <i class="bi bi-tags input-icon"></i>
+                <input type="text" id="new-board-name" class="form-control-custom" placeholder="Ej. Ranking Mensual de Ventas" required maxlength="40">
+              </div>
+            </div>
+            <div class="row g-2">
+              <div class="col-6">
+                <label for="new-plus-step" class="form-label-custom">Modificador Suma (+)</label>
+                <div class="input-group-custom">
+                  <i class="bi bi-plus-circle input-icon text-success"></i>
+                  <input type="number" id="new-plus-step" class="form-control-custom text-center" min="1" value="1">
+                </div>
+              </div>
+              <div class="col-6">
+                <label for="new-minus-step" class="form-label-custom">Modificador Resta (-)</label>
+                <div class="input-group-custom">
+                  <i class="bi bi-dash-circle input-icon text-danger"></i>
+                  <input type="number" id="new-minus-step" class="form-control-custom text-center" min="1" value="1">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-top border-neon-muted p-4">
+            <button type="button" class="btn btn-outline-custom px-4 py-2" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-action-glow px-4 py-2">
+              <i class="bi bi-check-circle me-1"></i> Crear Tabla
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Backdrop Modal -->
+  <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content glass-panel border-danger shadow-2xl">
+        <div class="modal-header border-bottom border-neon-muted p-4">
+          <h5 class="modal-title font-outfit font-weight-700 text-danger-glow" id="deleteConfirmModalLabel">
+            <i class="bi bi-exclamation-triangle text-danger me-1"></i> ¿Confirmar Eliminación?
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body p-4 text-center">
+          <p class="mb-2">¿Estás seguro de que deseas eliminar la tabla de posiciones activa: <strong id="lbl-delete-board-target" class="text-white"></strong>?</p>
+          <span class="text-danger small"><i class="bi bi-exclamation-octagon me-1"></i> Esta acción no se puede deshacer y borrará permanentemente a todos sus participantes.</span>
+        </div>
+        <div class="modal-footer border-top border-neon-muted p-4">
+          <button type="button" class="btn btn-outline-custom px-4 py-2" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger-glow px-4 py-2" id="btn-confirm-delete-board">
+            <i class="bi bi-trash3-fill me-1"></i> Sí, Eliminar Tabla
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+    <div id="liveToast" class="toast align-items-center text-white border-0 glass-panel" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body d-flex align-items-center gap-2">
+          <i id="toast-icon" class="bi bi-info-circle text-cyan"></i>
+          <span id="toast-message">Notificación del sistema</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 Bundle JS (includes Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <!-- Core Logic JS -->
+  <script src="app.js"></script>
+</body>
+</html>
