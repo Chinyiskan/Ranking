@@ -304,7 +304,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Render and sort participants cards
+  // Render and sort participants cards (with FLIP position animation)
   function renderParticipants() {
     const activeBoard = state.leaderboards[state.activeBoardId];
     if (!activeBoard) return;
@@ -318,7 +318,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const isDesc = activeBoard.sortOrder === "desc";
     sortedList.sort((a, b) => {
       if (a.score === b.score) {
-        // Alphabetical second tier sort if scores match
         return a.name.localeCompare(b.name);
       }
       return isDesc ? b.score - a.score : a.score - b.score;
@@ -338,6 +337,13 @@ document.addEventListener("DOMContentLoaded", () => {
       btnClearSearch.classList.add("d-none");
     }
 
+    // ── FLIP Step 1: record FIRST positions of every existing card ──
+    const firstPositions = new Map();
+    rankingsList.querySelectorAll(".participant-card").forEach(el => {
+      const id = el.id.replace("participant-card-", "");
+      firstPositions.set(id, el.getBoundingClientRect().top);
+    });
+
     // Clear list
     rankingsList.innerHTML = "";
 
@@ -352,7 +358,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Render cards list with nice custom animations
+    // Render cards list
     sortedList.forEach((p) => {
       const finalRank = originalRankMap.get(p.id);
       
@@ -368,7 +374,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const card = document.createElement("div");
-      card.className = "participant-card card-scale-in";
+      // Only apply scale-in for truly new cards (not existing ones that just moved)
+      const isExisting = firstPositions.has(p.id);
+      card.className = isExisting ? "participant-card" : "participant-card card-scale-in";
       card.id = `participant-card-${p.id}`;
 
       // Rank Column
@@ -413,14 +421,26 @@ document.addEventListener("DOMContentLoaded", () => {
       const scoreWrap = document.createElement("div");
       scoreWrap.className = "participant-score-wrap";
 
+      // Per-card step input (editable amount to add/subtract)
+      const stepInput = document.createElement("input");
+      stepInput.type = "number";
+      stepInput.className = "card-step-input";
+      stepInput.value = activeBoard.plusStep;
+      stepInput.min = "1";
+      stepInput.title = "Cantidad a sumar o restar";
+      stepInput.addEventListener("click", e => e.stopPropagation());
+      stepInput.addEventListener("keydown", e => e.stopPropagation());
+
+      const getStep = () => Math.abs(parseInt(stepInput.value) || 1);
+
       // Decrement minus round button
       const minusBtn = document.createElement("button");
       minusBtn.className = "btn-point-adjust minus";
-      minusBtn.title = `Restar ${activeBoard.minusStep} puntos`;
+      minusBtn.title = `Restar puntos`;
       minusBtn.innerHTML = "<i class='bi bi-dash'></i>";
       minusBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        adjustScore(p.id, -activeBoard.minusStep);
+        adjustScore(p.id, -getStep());
       });
 
       // Score displays wrapper
@@ -429,9 +449,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const scoreNum = document.createElement("span");
       scoreNum.className = "score-num";
+      scoreNum.id = `score-num-${p.id}`;
       scoreNum.textContent = p.score;
       
-      // Make score double-clickable for custom input!
       scoreNum.title = "Doble click para editar puntaje directamente";
       scoreNum.addEventListener("dblclick", (e) => {
         e.stopPropagation();
@@ -443,14 +463,15 @@ document.addEventListener("DOMContentLoaded", () => {
       // Increment plus round button
       const plusBtn = document.createElement("button");
       plusBtn.className = "btn-point-adjust plus";
-      plusBtn.title = `Sumar ${activeBoard.plusStep} puntos`;
+      plusBtn.title = `Sumar puntos`;
       plusBtn.innerHTML = "<i class='bi bi-plus'></i>";
       plusBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        adjustScore(p.id, activeBoard.plusStep);
+        adjustScore(p.id, +getStep());
       });
 
       scoreWrap.appendChild(minusBtn);
+      scoreWrap.appendChild(stepInput);
       scoreWrap.appendChild(scoreDisplayWrapper);
       scoreWrap.appendChild(plusBtn);
       card.appendChild(scoreWrap);
@@ -458,7 +479,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Operational dropdown list actions
       const actionsDiv = document.createElement("div");
       actionsDiv.className = "header-col actions text-end d-flex align-items-center justify-content-end gap-1";
-      actionsDiv.style.width = "70px"; // On mobile, desktop size header column is hidden or scaled
+      actionsDiv.style.width = "70px";
 
       // Inline delete participant button
       const delParticipantBtn = document.createElement("button");
@@ -474,6 +495,34 @@ document.addEventListener("DOMContentLoaded", () => {
       card.appendChild(actionsDiv);
 
       rankingsList.appendChild(card);
+    });
+
+    // ── FLIP Steps 2-4: measure LAST position, invert, then play ──
+    // Use requestAnimationFrame to ensure layout is committed before measuring
+    requestAnimationFrame(() => {
+      rankingsList.querySelectorAll(".participant-card").forEach(el => {
+        const id = el.id.replace("participant-card-", "");
+        const firstY = firstPositions.get(id);
+        if (firstY === undefined) return; // new card, skip
+
+        const lastY = el.getBoundingClientRect().top;
+        const deltaY = firstY - lastY;
+
+        if (Math.abs(deltaY) < 1) return; // card didn't move, skip
+
+        // Play: animate from old position to new (natural) position
+        el.animate(
+          [
+            { transform: `translateY(${deltaY}px)`, opacity: 0.7 },
+            { transform: "translateY(0)",            opacity: 1   }
+          ],
+          {
+            duration: 420,
+            easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+            fill: "backwards"
+          }
+        );
+      });
     });
   }
 
@@ -568,7 +617,10 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast(`Participante "${newParticipant.name}" añadido`);
   }
 
-  // Adjust participant score by delta step
+  // Debounce map: participantId -> timer handle
+  const sortDebounceMap = new Map();
+
+  // Adjust participant score: updates DOM instantly, defers re-sort by 650ms
   function adjustScore(participantId, delta) {
     const activeBoard = state.leaderboards[state.activeBoardId];
     if (!activeBoard) return;
@@ -579,25 +631,34 @@ document.addEventListener("DOMContentLoaded", () => {
     participant.score += delta;
     saveState();
 
-    // Trigger score flash background glow
-    const cardEl = document.getElementById(`participant-card-${participantId}`);
-    const flashClass = delta > 0 ? "flash-increment" : "flash-decrement";
+    // --- Instant visual feedback: update the score number in-place ---
+    const scoreEl = document.getElementById(`score-num-${participantId}`);
+    if (scoreEl) {
+      scoreEl.textContent = participant.score;
+      const card = document.getElementById(`participant-card-${participantId}`);
+      const flashClass = delta > 0 ? "flash-increment" : "flash-decrement";
+      if (card) {
+        card.classList.remove("flash-increment", "flash-decrement");
+        // Force reflow so animation restarts cleanly
+        void card.offsetWidth;
+        card.classList.add(flashClass);
+        setTimeout(() => card.classList.remove(flashClass), 600);
+      }
+    }
 
-    // Refresh totals stats immediately
+    // Update running total in header
     const totalPoints = activeBoard.participants.reduce((acc, p) => acc + p.score, 0);
     statPoints.textContent = totalPoints;
 
-    // Render list (which re-sorts positions!)
-    renderParticipants();
-
-    // Keep flash animation active
-    const newCardEl = document.getElementById(`participant-card-${participantId}`);
-    if (newCardEl) {
-      newCardEl.classList.add(flashClass);
-      setTimeout(() => {
-        newCardEl.classList.remove(flashClass);
-      }, 600);
+    // --- Debounced re-sort: wait 900ms after last click before reordering ---
+    if (sortDebounceMap.has(participantId)) {
+      clearTimeout(sortDebounceMap.get(participantId));
     }
+    const timer = setTimeout(() => {
+      sortDebounceMap.delete(participantId);
+      renderParticipants();
+    }, 900);
+    sortDebounceMap.set(participantId, timer);
   }
 
   // Delete participant from current leaderboard
@@ -615,8 +676,8 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast(`Participante "${name}" eliminado`);
   }
 
-  // Create new leaderboard
-  function createLeaderboard(name, plusVal, minusVal) {
+  // Create new leaderboard (optionally with pre-seeded participants)
+  function createLeaderboard(name, plusVal, minusVal, seedParticipants = []) {
     const newId = generateUUID();
     state.leaderboards[newId] = {
       id: newId,
@@ -624,14 +685,16 @@ document.addEventListener("DOMContentLoaded", () => {
       plusStep: parseInt(plusVal) || 1,
       minusStep: parseInt(minusVal) || 1,
       sortOrder: "desc",
-      participants: []
+      participants: seedParticipants
     };
 
     state.activeBoardId = newId;
     saveState();
     renderBoardsSelectors();
     renderDashboard();
-    showToast(`Tabla de posiciones "${name.trim()}" creada con éxito`);
+    const count = seedParticipants.length;
+    const extra = count > 0 ? ` con ${count} participante${count !== 1 ? "s" : ""}` : "";
+    showToast(`Tabla "${name.trim()}" creada${extra}`);
   }
 
   // Confirm and delete active leaderboard
@@ -781,6 +844,7 @@ document.addEventListener("DOMContentLoaded", () => {
     newBoardName.value = "";
     newPlusStep.value = "10";
     newMinusStep.value = "5";
+    document.getElementById("new-bulk-names").value = "";
     createModal.show();
   }
 
@@ -849,12 +913,24 @@ document.addEventListener("DOMContentLoaded", () => {
   // Create board form inside Modal
   formCreateBoard.addEventListener("submit", (e) => {
     e.preventDefault();
-    const name = newBoardName.value;
-    const plus = parseInt(newPlusStep.value) || 1;
+    const name  = newBoardName.value.trim();
+    const plus  = parseInt(newPlusStep.value) || 1;
     const minus = parseInt(newMinusStep.value) || 1;
+    const bulk  = document.getElementById("new-bulk-names").value;
+
+    // Parse comma-separated names, ignore blanks
+    const seedParticipants = bulk
+      .split(",")
+      .map(n => n.trim())
+      .filter(n => n.length > 0)
+      .map(n => ({
+        id: "part_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+        name: n,
+        score: 0
+      }));
 
     if (name) {
-      createLeaderboard(name, plus, minus);
+      createLeaderboard(name, plus, minus, seedParticipants);
       createModal.hide();
     }
   });
@@ -878,12 +954,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (collapsed) {
       desktopSidebar.classList.add("sidebar-collapsed");
       sidebarRail.classList.add("rail-visible");
-      toggleIcon.className = "bi bi-layout-sidebar-reverse";
+      toggleIcon.className = "bi bi-chevron-right";
       btnToggle.title = "Expandir panel";
     } else {
       desktopSidebar.classList.remove("sidebar-collapsed");
       sidebarRail.classList.remove("rail-visible");
-      toggleIcon.className = "bi bi-layout-sidebar";
+      toggleIcon.className = "bi bi-chevron-left";
       btnToggle.title = "Colapsar panel";
     }
     localStorage.setItem(SIDEBAR_KEY, collapsed ? "1" : "0");

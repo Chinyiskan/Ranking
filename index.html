@@ -43,11 +43,6 @@
           <span class="logo-text">Rank<span class="gradient-text">Flow</span></span>
         </a>
 
-        <!-- Desktop Sidebar Toggle (only visible on lg+) -->
-        <button class="btn-sidebar-toggle d-none d-lg-flex" id="btn-toggle-sidebar" title="Colapsar panel">
-          <i class="bi bi-layout-sidebar" id="sidebar-toggle-icon"></i>
-        </button>
-
         <!-- System Status Bar -->
         <div class="d-flex align-items-center gap-3">
           <div class="status-indicator d-none d-sm-flex align-items-center gap-2 px-3 py-1.5 rounded-full glass-pill">
@@ -88,6 +83,10 @@
 
       <!-- Desktop Sidebar (Hidden on Mobile, Offcanvas replaces it) -->
       <aside class="sidebar-container glass-panel d-none d-lg-block border-end-neon py-4 px-3 flex-shrink-0" id="desktop-sidebar" style="width: 320px;">
+        <!-- Collapse tab — floats at top-right edge of sidebar -->
+        <button class="btn-sidebar-collapse-tab" id="btn-toggle-sidebar" title="Colapsar panel">
+          <i class="bi bi-chevron-left" id="sidebar-toggle-icon"></i>
+        </button>
         <!-- Sidebar Content Shared Container -->
         <div class="d-flex flex-column gap-4 h-100 overflow-y-auto custom-scrollbar-sidebar pr-1">
           <!-- Sidebar Shared Partials -->
@@ -416,6 +415,25 @@
                   <input type="number" id="new-minus-step" class="form-control-custom text-center" min="1" value="1">
                 </div>
               </div>
+            </div>
+
+            <!-- Bulk participants import -->
+            <hr class="border-neon-muted my-3">
+            <div>
+              <label for="new-bulk-names" class="form-label-custom">
+                <i class="bi bi-people text-cyan me-1"></i> Agregar participantes de golpe
+                <span class="text-muted ms-1" style="font-weight:400;">(opcional)</span>
+              </label>
+              <textarea
+                id="new-bulk-names"
+                class="form-control-custom"
+                rows="3"
+                placeholder="Ej: Ana García, Pedro López, María Pérez, Carlos Ruiz"
+                style="padding-left: 14px; resize: vertical; min-height: 80px;"
+              ></textarea>
+              <p class="text-muted mt-2 mb-0" style="font-size: 0.78rem;">
+                <i class="bi bi-info-circle me-1"></i> Escribe los nombres separados por comas. Todos iniciarán con 0 puntos.
+              </p>
             </div>
           </div>
           <div class="modal-footer border-top border-neon-muted p-4">
