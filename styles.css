@@ -696,6 +696,8 @@ h1, h2, h3, h4, h5, h6, .font-outfit {
 }
 
 /* Custom Text styles */
+.text-muted { color: var(--text-muted) !important; }
+.text-secondary { color: var(--text-secondary) !important; }
 .text-cyan { color: var(--neon-cyan); }
 .text-violet { color: var(--neon-violet); }
 .text-magenta { color: var(--neon-magenta); }
